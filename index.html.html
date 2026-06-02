@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>기말고사 공부 계획 Todo Planner</title>
+<style>
+  :root{
+    --navy:#142241;
+    --blue:#dfeafa;
+    --line:#d9e1ef;
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --soft:#f7f9fd;
+    --exam:#CA1846;
+    --yellow:#fff4c8;
+    --yellow-line:#f2cb55;
+    --green:#e8f8ee;
+    --green-line:#8bd4a4;
+    --purple:#f1e8ff;
+    --purple-line:#bda3ee;
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
+    color:#0d1730;
+    padding:26px;
+  }
+
+  .top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:18px;
+  }
+
+  h1{
+    font-size:28px;
+    margin:0 0 6px;
+    font-weight:900;
+    letter-spacing:-.8px;
+    color:var(--navy);
+  }
+
+  .subtitle{
+    margin:0;
+    color:#5d677d;
+    font-size:15px;
+    font-weight:600;
+  }
+
+  .subtitle strong{color:#2563a8}
+
+  .toolbar{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  button{
+    border:0;
+    border-radius:12px;
+    background:var(--navy);
+    color:white;
+    font-weight:800;
+    cursor:pointer;
+    padding:11px 15px;
+    box-shadow:0 4px 10px rgba(20,34,65,.12);
+  }
+
+  button.secondary{
+    background:white;
+    color:var(--navy);
+    border:1px solid var(--line);
+    box-shadow:none;
+  }
+
+  .weeks{display:flex;flex-direction:column;gap:28px}
+
+  .week-title{
+    font-size:24px;
+    font-weight:900;
+    margin:2px 0 14px;
+    color:var(--navy);
+    letter-spacing:-.6px;
+  }
+
+  /* 언제나 무조건 2열로 고정하도록 Grid 속성 수정 */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:16px;
+    align-items:start;
+  }
+
+  .day-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(20,34,65,.04);
+  }
+
+  .day-head{
+    padding:20px 18px 14px;
+    min-height:105px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#fbfcff,#f6f8fc);
+  }
+
+  .date-line{
+    display:flex;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:7px;
+  }
+
+  .date{
+    font-size:22px;
+    font-weight:900;
+    color:var(--navy);
+    line-height:1;
+  }
+
+  .dow{
+    font-size:15px;
+    font-weight:700;
+    color:#3f4a61;
+  }
+
+  .holiday{color:var(--exam);font-weight:900}
+
+  .exam{
+    color:var(--exam);
+    font-size:10pt;
+    font-weight:900;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+
+  .badge-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+  .badge{
+    display:inline-block;
+    background:var(--yellow);
+    border:1px solid var(--yellow-line);
+    border-radius:999px;
+    color:#7b5600;
+    font-size:13px;
+    font-weight:800;
+    padding:7px 11px;
+  }
+
+  .badge.green{background:var(--green);border-color:var(--green-line);color:#1f7a3c}
+  .badge.purple{background:var(--purple);border-color:var(--purple-line);color:#5c3fa3}
+  .badge.blue{background:#eaf4ff;border-color:#9ac7f5;color:#2563a8}
+
+  .task-list{
+    min-height:120px;
+    padding:13px 12px 8px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .task{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--soft);
+    border:1px solid var(--line);
+    border-radius:14px;
+    min-height:48px;
+    padding:12px 14px;
+    cursor:grab;
+    user-select:none;
+    transition:.15s ease;
+  }
+
+  .task:active{cursor:grabbing;transform:scale(.99)}
+  .task.dragging{opacity:.45}
+  .task.done{opacity:.58;text-decoration:line-through}
+
+  input[type="checkbox"]{
+    width:16px;
+    height:16px;
+    accent-color:var(--navy);
+    flex:0 0 auto;
+  }
+
+  .tag{
+    font-size:12px;
+    font-weight:900;
+    color:#16386a;
+    background:var(--blue);
+    border-radius:8px;
+    padding:3px 7px;
+    white-space:nowrap;
+  }
+
+  .tag.life{background:#e9efff;color:#24458a}
+  .tag.neuro{background:#e7efff;color:#16386a}
+  .tag.anatomy{background:#e8eef8;color:#233f73}
+  .tag.hydro{background:#dff7f2;color:#09695d}
+  .tag.image{background:#f8dff0;color:#8a245e}
+  .tag.sports{background:#fff0d9;color:#9a5200}
+  .tag.adl{background:#dff6ff;color:#13708e}
+  .tag.psych{background:#efe7ff;color:#5e3ca0}
+  .tag.add{background:#eef1f6;color:#596275}
+
+  .task-text{
+    font-size:15px;
+    line-height:1.35;
+    word-break:keep-all;
+  }
+
+  .add-row{
+    display:flex;
+    gap:8px;
+    padding:8px 12px 12px;
+  }
+
+  .add-row input{
+    flex:1;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 12px;
+    font-size:14px;
+    background:white;
+  }
+
+  .add-row button{
+    border-radius:12px;
+    padding:8px 13px;
+    line-height:1.05;
+    min-width:54px;
+  }
+
+  .move-btn{
+    margin:0 12px 13px;
+    width:calc(100% - 24px);
+    background:white;
+    color:#0d1730;
+    border:1px solid var(--line);
+    box-shadow:none;
+  }
+
+  .drop-over .task-list{
+    outline:2px dashed #9db4d8;
+    outline-offset:-7px;
+    border-radius:18px;
+  }
+
+  /* 모바일 화면에서도 2열이 유지되도록 미디어 쿼리 조정 */
+  @media(max-width:900px){
+    body{padding:16px}
+    .top{flex-direction:column}
+    .toolbar{justify-content:flex-start}
+    /* 1fr 고정으로 화면이 작아져도 무조건 2줄(2열)을 유지합니다 */
+    .grid{grid-template-columns: repeat(2, 1fr); gap: 10px;}
+    .day-head{min-height:96px}
+    .task{padding:8px 10px; min-height:42px; gap:6px;}
+    .task-text{font-size:13px}
+    .badge{padding:4px 8px; font-size:11px}
+  }
+
+  @media print{
+    body{padding:10px;background:white}
+    .toolbar{display:none}
+    .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+    .day-card{break-inside:avoid;box-shadow:none}
+    .task{min-height:42px}
+    .add-row,.move-btn{display:none}
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>📚 기말고사 공부 계획 (6/2 ~ 6/15)</h1>
+      <p class="subtitle">정리본은 <strong>6월 3일까지</strong> 모두 완료!</p>
+    </div>
+    <div class="toolbar">
+      <button class="secondary" onclick="saveState()">☑ 체크 상태 저장</button>
+      <button class="secondary" onclick="resetAll()">↺ 초기화</button>
+      <button class="secondary" onclick="window.print()">🖨 인쇄/PDF</button>
+    </div>
+  </div>
+
+  <div class="weeks" id="planner"></div>
+
+<script>
+const tagClass = {
+  '생활과 윤리':'life', '신경과학':'neuro', '기능해부':'anatomy', '기능해부학':'anatomy',
+  '수치료':'hydro', '재활영상해부학':'image', '재영해':'image', '스포츠물리치료학':'sports',
+  '스포츠':'sports', 'ADL':'adl', '심리학':'psych', '추가':'add'
+};
+
+const initialData = [
+ {week:'1주차 · 정리본 제작 시작', days:[
+  {date:'6/2', dow:'화', holiday:false, badges:[['정리본 제작','']], exam:'', tasks:[['신경과학','정리본 제작'],['기능해부학','Hand 정리본'],['기능해부학','Foot 정리본'],['스포츠물리치료학','Anterior Thigh 정리본'],['생활과 윤리','예상문제 1~30 암기 + 1회독']]},
+  {date:'6/3', dow:'수', holiday:true, badges:[['정리본 제작 마감일','']], exam:'', tasks:[['기능해부학','Abdomins 정리본'],['기능해부학','Swallow Muscle 정리본'],['수치료','10장 정리'],['수치료','11장 정리'],['수치료','12장 정리'],['수치료','13장 정리'],['수치료','14장 정리'],['재활영상해부학','7주차 정리'],['재활영상해부학','9주차 정리'],['재활영상해부학','10주차 정리'],['재활영상해부학','11주차 정리'],['재활영상해부학','12주차 정리'],['재활영상해부학','13주차 정리'],['재활영상해부학','14주차 정리'],['스포츠물리치료학','Posterior Thigh 정리본'],['스포츠물리치료학','Shin Pain 정리본'],['ADL','Knee 정리본'],['ADL','Hip 정리본'],['ADL','Ankle 정리본'],['ADL','Shoulder 정리본'],['ADL','Waist 정리본'],['심리학','성격장애 이후 범위 정리']]},
+  {date:'6/4', dow:'목', holiday:false, badges:[['1회독 시작','green']], exam:'', tasks:[['신경과학','1회독'],['기능해부학','Forearm 1회독'],['기능해부학','Leg 1회독'],['수치료','10~12장 1회독'],['재활영상해부학','7, 9, 10주차 1회독']]},
+  {date:'6/5', dow:'금', holiday:false, badges:[['1회독 계속','green']], exam:'', tasks:[['기능해부학','Abdomins 1회독'],['기능해부학','Swallow Muscle 1회독'],['수치료','13~14장 1회독'],['재활영상해부학','11~14주차 1회독'],['스포츠물리치료학','Posterior Thigh 1회독'],['스포츠물리치료학','Shin Pain 1회독'],['ADL','전체 1회독']]},
+  {date:'6/6', dow:'토', holiday:false, badges:[['알바','purple'],['1시간','blue']], exam:'', tasks:[['생활과 윤리','문제풀이'],['신경과학','핵심 암기']]},
+  {date:'6/7', dow:'일', holiday:false, badges:[['알바','purple'],['1시간','blue']], exam:'', tasks:[['기능해부학','총 복습'],['스포츠물리치료학','복습'],['ADL','복습']]}
+ ]},
+ {week:'2주차 · 2회독/3회독/시험 주간', days:[
+  {date:'6/8', dow:'월', holiday:false, badges:[['시험 후','green']], exam:'심리학 객관식 시험', tasks:[['심리학','객관식 최종 암기'],['심리학','객관식 시험'],['신경과학','2회독 시작']]},
+  {date:'6/9', dow:'화', holiday:false, badges:[['2회독','blue']], exam:'', tasks:[['신경과학','족보 문제풀이'],['기능해부학','전체 2회독'],['ADL','Knee, Hip 2회독']]},
+  {date:'6/10', dow:'수', holiday:false, badges:[['2회독','blue']], exam:'', tasks:[['재활영상해부학','전체 2회독'],['수치료','전체 2회독'],['스포츠물리치료학','전체 2회독'],['ADL','Ankle, Shoulder, Waist 2회독']]},
+  {date:'6/11', dow:'목', holiday:false, badges:[['3회독 시작','blue']], exam:'', tasks:[['신경과학','3회독'],['기능해부학','3회독'],['수치료','3회독'],['ADL','복습 + 약점 보완']]},
+  {date:'6/12', dow:'금', holiday:false, badges:[['3회독 계속','blue']], exam:'', tasks:[['신경과학','3회독 암기'],['기능해부학','3회독 암기'],['재활영상해부학','3회독'],['생활과 윤리','문제풀이 + 암기']]},
+  {date:'6/13', dow:'토', holiday:false, badges:[['알바','purple']], exam:'', tasks:[['수치료','3회독'],['스포츠물리치료학','3회독'],['ADL','3회독']]},
+  {date:'6/14', dow:'일', holiday:false, badges:[['알바','purple']], exam:'', tasks:[['생활과 윤리','최종 문제풀이'],['신경과학','최종 암기'],['기능해부학','최종 암기'],['ADL','최종 암기']]},
+  {date:'6/15', dow:'월', holiday:false, badges:[], exam:'심리학 주관식 오픈북 시험', tasks:[['심리학','목차 최종 점검'],['심리학','탭 정리'],['심리학','주관식 오픈북 시험']]}
+ ]}
+];
+
+function cloneInitial(){return JSON.parse(JSON.stringify(initialData));}
+function load(){return JSON.parse(localStorage.getItem('examTodoTwoColOneList')||'null')||cloneInitial();}
+let data = load();
+const planner=document.getElementById('planner');
+
+function render(){
+ planner.innerHTML='';
+ data.forEach((w,wi)=>{
+  const sec=document.createElement('section');
+  sec.innerHTML=`<div class="week-title">${w.week}</div><div class="grid"></div>`;
+  const grid=sec.querySelector('.grid');
+  w.days.forEach((d,di)=>{
+   const card=document.createElement('div');
+   card.className='day-card';
+   card.dataset.wi=wi;
+   card.dataset.di=di;
+   const holidayText = d.holiday ? `<span class="holiday">· 공휴일</span>` : '';
+   const badgeHtml = (d.badges||[]).map(b=>`<span class="badge ${b[1]||''}">${b[0]}</span>`).join('');
+   card.innerHTML=`
+    <div class="day-head">
+      <div class="date-line">
+        <span class="date">${d.date}</span>
+        <span class="dow">(${d.dow})</span>
+        ${holidayText}
+        ${d.exam?`<span class="exam">${d.exam}</span>`:''}
+      </div>
+      <div class="badge-wrap">${badgeHtml}</div>
+    </div>
+    <div class="task-list"></div>
+    <div class="add-row">
+      <input placeholder="추가 task 입력" onkeydown="if(event.key==='Enter') addTask(${wi},${di},this)">
+      <button onclick="addTask(${wi},${di},this.previousElementSibling)">추가</button>
+    </div>
+    <button class="move-btn" onclick="moveUndone(${wi},${di})">이 날짜 미완료 → 다음 날로 이동</button>`;
+
+   const list=card.querySelector('.task-list');
+   list.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drop-over')});
+   list.addEventListener('dragleave',()=>card.classList.remove('drop-over'));
+   list.addEventListener('drop',e=>dropTask(e,wi,di,card));
+   d.tasks.forEach((t,ti)=>list.appendChild(taskEl(t,wi,di,ti)));
+   grid.appendChild(card);
+  });
+  planner.appendChild(sec);
+ });
+}
+
+function taskEl(t,wi,di,ti){
+ const el=document.createElement('div');
+ el.className='task'+(t[2]?' done':'');
+ el.draggable=true;
+ el.dataset.wi=wi;
+ el.dataset.di=di;
+ el.dataset.ti=ti;
+ const cls = tagClass[t[0]] || 'add';
+ el.innerHTML=`<input type="checkbox" ${t[2]?'checked':''} onchange="toggleDone(${wi},${di},${ti},this.checked)"><span class="tag ${cls}">${t[0]}</span><span class="task-text">${t[1]}</span>`;
+ el.addEventListener('dragstart',e=>{el.classList.add('dragging');e.dataTransfer.setData('text/plain',JSON.stringify({wi,di,ti}))});
+ el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+ return el;
+}
+
+function toggleDone(wi,di,ti,checked){
+ data[wi].days[di].tasks[ti][2]=checked;
+ saveState(false);
+ render();
+}
+
+function addTask(wi,di,input){
+ const v=input.value.trim();
+ if(!v) return;
+ data[wi].days[di].tasks.push(['추가',v,false]);
+ input.value='';
+ saveState(false);
+ render();
+}
+
+function dropTask(e,nwi,ndi,card){
+ card.classList.remove('drop-over');
+ const raw=e.dataTransfer.getData('text/plain');
+ if(!raw) return;
+ const src=JSON.parse(raw);
+ const task=data[src.wi].days[src.di].tasks.splice(src.ti,1)[0];
+ data[nwi].days[ndi].tasks.push(task);
+ saveState(false);
+ render();
+}
+
+function flatIndex(wi,di){
+ let idx=0;
+ for(let i=0;i<wi;i++) idx+=data[i].days.length;
+ return idx+di;
+}
+
+function fromFlat(idx){
+ let count=0;
+ for(let wi=0;wi<data.length;wi++){
+  for(let di=0;di<data[wi].days.length;di++){
+   if(count===idx) return [wi,di];
+   count++;
+  }
+ }
+ return null;
+}
+
+function moveUndone(wi,di){
+ const next=fromFlat(flatIndex(wi,di)+1);
+ if(!next){alert('마지막 날짜라 다음 날로 옮길 수 없어요.'); return;}
+ const remain=[], move=[];
+ data[wi].days[di].tasks.forEach(t=>(t[2]?remain:move).push(t));
+ data[wi].days[di].tasks=remain;
+ data[next[0]].days[next[1]].tasks.push(...move);
+ saveState(false);
+ render();
+}
+
+function saveState(showAlert=true){
+ localStorage.setItem('examTodoTwoColOneList',JSON.stringify(data));
+ if(showAlert) alert('저장 완료!');
+}
+
+function resetAll(){
+ if(confirm('전체 계획을 처음 상태로 되돌릴까요?')){
+  localStorage.removeItem('examTodoTwoColOneList');
+  data=cloneInitial();
+  render();
+ }
+}
+
+render();
+</script>
+</body>
+</html>
